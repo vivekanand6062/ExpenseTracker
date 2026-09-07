@@ -53,15 +53,21 @@ export async function getAllIncome(req,res){
 }
 
 export async function updateIncome(req,res){
-    const {id}=req.params;
+    const id = req.params.id || req.body.id || req.body._id;
     const userId=req.user._id;
 
-    const {description, amount}=req.body;
+    const {description, amount, category, date}=req.body;
 
     try{
+        const updateData = {};
+        if (description !== undefined) updateData.description = description;
+        if (amount !== undefined) updateData.amount = amount;
+        if (category !== undefined) updateData.category = category;
+        if (date !== undefined) updateData.date = new Date(date);
+
         const updatedIncome=await incomeModel.findOneAndUpdate({
             _id:id,userId
-        },{description,amount},{new:true});
+        },updateData,{new:true});
 
         if(!updatedIncome){
             return res.status(404).json({
@@ -144,7 +150,7 @@ export async function deleteIncome(req,res) {
 
     try{
         const userId=req.user._id;
-        const {range="monthly"}=req.body;
+        const range = req.query.range || req.body?.range || "monthly";
         const {start,end}=getDateRange(range);
 
         const income=await incomeModel.find({
@@ -154,11 +160,11 @@ export async function deleteIncome(req,res) {
         }).sort({date:-1});
 
 
-        const totalIncome = incomes.reduce((acc, cur) => acc + cur.amount, 0);
-        const averageIncome = incomes.length > 0 ? totalIncome / incomes.length : 0;
-        const numberOfTransactions = incomes.length;
+        const totalIncome = income.reduce((acc, cur) => acc + cur.amount, 0);
+        const averageIncome = income.length > 0 ? totalIncome / income.length : 0;
+        const numberOfTransactions = income.length;
 
-        const recentTransactions = incomes.slice(0, 9);
+        const recentTransactions = income.slice(0, 9);
 
         res.json({
             success:true,

@@ -64,15 +64,21 @@ export async function getAllExpense(req,res) {
 //to update the expense
 
 export async function updateExpense(req,res) {
-     const {id}=req.params;
+    const id = req.params.id || req.body.id || req.body._id;
     const userId=req.user._id;
 
-    const {description, amount}=req.body;
+    const {description, amount, category, date}=req.body;
 
     try{
+        const updateData = {};
+        if (description !== undefined) updateData.description = description;
+        if (amount !== undefined) updateData.amount = amount;
+        if (category !== undefined) updateData.category = category;
+        if (date !== undefined) updateData.date = new Date(date);
+
         const updatedExpense=await expenseModel.findOneAndUpdate({
             _id:id,userId
-        },{description,amount},{new:true});
+        },updateData,{new:true});
 
         if(!updatedExpense){
             return res.status(404).json({
@@ -189,7 +195,7 @@ export async function deleteExpense(req, res) {
 
     try{
         const userId=req.user._id;
-        const {range="monthly"}=req.body;
+        const range = req.query.range || req.body?.range || "monthly";
         const {start,end}=getDateRange(range);
 
         const expense=await expenseModel.find({

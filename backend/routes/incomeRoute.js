@@ -8,6 +8,7 @@ import { addIncome, deleteIncome, downloadIncomeExcel, getAllIncome, getIncomeOv
  incomeRouter.post("/add",authMiddleware,addIncome);
  incomeRouter.get("/get",authMiddleware,getAllIncome);
  incomeRouter.put("/update",authMiddleware,updateIncome);
+ incomeRouter.put("/update/:id",authMiddleware,updateIncome);
  incomeRouter.get("/downloadexcel",authMiddleware,downloadIncomeExcel);
  incomeRouter.delete("/delete/:id",authMiddleware,deleteIncome);
 

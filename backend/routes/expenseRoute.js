@@ -9,6 +9,7 @@ const expenseRouter= express.Router();
  expenseRouter.post("/add",authMiddleware,addExpense);
  expenseRouter.get("/get",authMiddleware,getAllExpense);
  expenseRouter.put("/update",authMiddleware,updateExpense);
+ expenseRouter.put("/update/:id",authMiddleware,updateExpense);
  expenseRouter.get("/downloadexcel",authMiddleware,downloadExpenseExcel);
  expenseRouter.delete("/delete/:id",authMiddleware,deleteExpense);
 

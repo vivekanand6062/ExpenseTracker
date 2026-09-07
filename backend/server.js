@@ -8,7 +8,7 @@ import expenseRouter from './routes/expenseRoute.js';
 import dashboardRouter from './routes/dashboardRoute.js';
 
 const app=express();
-const port=4000;
+const port = process.env.PORT || 4000;
 
 //middlewere
 app.use(cors());
@@ -32,5 +32,5 @@ app.get('/',(req,res)=>{
 })
 
 app.listen(port,()=>{
-    console.log("server listen at port no 4000")
+    console.log(`server listen at port no ${port}`);
 })

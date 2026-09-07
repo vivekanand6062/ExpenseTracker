@@ -7,8 +7,8 @@ import jwt from 'jsonwebtoken';
 
 
 
-const JWT_SECRET='your_jwt_secret';
-const TOKEN_EXPIRE='24h';
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
+const TOKEN_EXPIRE = process.env.JWT_EXPIRE || '24h';
 
 const createToken=(userId)=>
     jwt.sign({id:userId},JWT_SECRET,{expiresIn:TOKEN_EXPIRE});
@@ -162,7 +162,7 @@ export async function UpdateProfile(req,res){
         const user=await User.findByIdAndUpdate(
             req.user.id,
             {name,email},
-            {new:true,runValidators:true,select:"name,email"}
+            {new:true,runValidators:true,select:"name email"}
         );
         res.json({
             success:true,
