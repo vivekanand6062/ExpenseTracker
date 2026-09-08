@@ -121,7 +121,7 @@ const TransactionForm = ({ type, initialData, onClose, onSuccess }) => {
 
           {/* Amount */}
           <div>
-            <label className={modalStyles.label}>Amount ($)</label>
+            <label className={modalStyles.label}>Amount (₹)</label>
             <input
               type="number"
               required
