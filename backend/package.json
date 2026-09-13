@@ -4,13 +4,14 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node tests/full_system_test.js"
   },
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@google/genai": "^2.22.0",
     "bcryptjs": "^3.0.3",
     "body-parser": "^2.3.0",
     "cors": "^2.8.6",

@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { X, Eye, EyeOff, Lock, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { X, Eye, EyeOff, Lock } from 'lucide-react';
+import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
 import api from '../api/axios';
-import { profileStyles } from '../assets/dummyStyles';
+import Spinner from './Spinner';
 
 const ChangePasswordModal = ({ isOpen, onClose, onSuccess }) => {
   const [currentPassword, setCurrentPassword] = useState('');
@@ -11,28 +13,24 @@ const ChangePasswordModal = ({ isOpen, onClose, onSuccess }) => {
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
   if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
 
     if (!currentPassword) {
-      setError('Please enter your current password.');
+      toast.error('Please enter your current password.');
       return;
     }
 
     if (newPassword.length < 8) {
-      setError('New password must be at least 8 characters long.');
+      toast.error('New password must be at least 8 characters long.');
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError('New passwords do not match.');
+      toast.error('New passwords do not match.');
       return;
     }
 
@@ -44,144 +42,132 @@ const ChangePasswordModal = ({ isOpen, onClose, onSuccess }) => {
       });
 
       if (res.data?.success) {
-        setSuccess('Password updated successfully!');
-        setTimeout(() => {
-          onSuccess?.();
-          onClose();
-        }, 1200);
+        toast.success('Password updated successfully!');
+        onSuccess?.();
+        onClose();
       }
     } catch (err) {
-      const msg = err.response?.data?.message || 'Failed to update password.';
-      setError(msg);
+      toast.error(err.response?.data?.message || 'Failed to update password.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl p-6 sm:p-8 max-w-md w-full shadow-2xl">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6 pb-3 border-b border-gray-100">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-teal-50 rounded-lg text-teal-600">
-              <Lock size={20} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-100 p-6 overflow-hidden"
+      >
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-2.5">
+            <div className="h-9 w-9 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center font-bold border border-teal-100">
+              <Lock size={18} />
             </div>
-            <h2 className="text-xl font-bold text-gray-800">Change Password</h2>
+            <div>
+              <h3 className="text-base font-bold text-slate-900 tracking-tight">Change Password</h3>
+              <p className="text-[11px] text-slate-400">Update your security credentials</p>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100"
-            aria-label="Close modal"
+            className="p-1.5 text-slate-400 hover:text-slate-600 rounded-xl cursor-pointer"
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
-        {/* Feedback Alert */}
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg flex items-center gap-2">
-            <AlertCircle size={16} className="shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        {success && (
-          <div className="mb-4 p-3 bg-green-50 text-green-700 text-sm rounded-lg flex items-center gap-2">
-            <CheckCircle2 size={16} className="shrink-0" />
-            <span>{success}</span>
-          </div>
-        )}
-
-        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Current Password */}
-          <div>
-            <label className={profileStyles.label}>Current Password</label>
-            <div className={profileStyles.passwordContainer}>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-700">Current Password</label>
+            <div className="relative">
               <input
                 type={showCurrent ? 'text' : 'password'}
                 required
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder="Enter current password"
-                className={profileStyles.input}
+                placeholder="••••••••"
+                className="w-full bg-slate-100/80 hover:bg-slate-100 focus:bg-white border-2 border-transparent focus:border-teal-600 rounded-2xl px-4 py-3 pr-11 text-slate-900 text-sm focus:outline-none transition shadow-2xs"
               />
               <button
                 type="button"
-                onClick={() => setShowCurrent((p) => !p)}
-                className={profileStyles.passwordToggle}
+                onClick={() => setShowCurrent((v) => !v)}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
               >
-                {showCurrent ? <EyeOff size={18} /> : <Eye size={18} />}
+                {showCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
           </div>
 
           {/* New Password */}
-          <div>
-            <label className={profileStyles.label}>New Password (min 8 chars)</label>
-            <div className={profileStyles.passwordContainer}>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-700">
+              New Password (min 8 chars)
+            </label>
+            <div className="relative">
               <input
                 type={showNew ? 'text' : 'password'}
                 required
                 minLength={8}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Enter new password"
-                className={profileStyles.input}
+                placeholder="••••••••"
+                className="w-full bg-slate-100/80 hover:bg-slate-100 focus:bg-white border-2 border-transparent focus:border-teal-600 rounded-2xl px-4 py-3 pr-11 text-slate-900 text-sm focus:outline-none transition shadow-2xs"
               />
               <button
                 type="button"
-                onClick={() => setShowNew((p) => !p)}
-                className={profileStyles.passwordToggle}
+                onClick={() => setShowNew((v) => !v)}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
               >
-                {showNew ? <EyeOff size={18} /> : <Eye size={18} />}
+                {showNew ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
           </div>
 
-          {/* Confirm New Password */}
-          <div>
-            <label className={profileStyles.label}>Confirm New Password</label>
-            <div className={profileStyles.passwordContainer}>
+          {/* Confirm Password */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-700">Confirm New Password</label>
+            <div className="relative">
               <input
                 type={showConfirm ? 'text' : 'password'}
                 required
-                minLength={8}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm new password"
-                className={profileStyles.input}
+                placeholder="••••••••"
+                className="w-full bg-slate-100/80 hover:bg-slate-100 focus:bg-white border-2 border-transparent focus:border-teal-600 rounded-2xl px-4 py-3 pr-11 text-slate-900 text-sm focus:outline-none transition shadow-2xs"
               />
               <button
                 type="button"
-                onClick={() => setShowConfirm((p) => !p)}
-                className={profileStyles.passwordToggle}
+                onClick={() => setShowConfirm((v) => !v)}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
               >
-                {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-3 pt-4">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
             <button
               type="button"
               onClick={onClose}
-              className={profileStyles.buttonSecondary}
+              className="px-5 py-3 rounded-2xl text-slate-600 hover:bg-slate-100 text-xs font-semibold cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className={profileStyles.buttonPrimary}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white text-xs font-bold shadow-md shadow-teal-700/20 transition cursor-pointer disabled:opacity-60"
             >
-              {loading ? 'Updating...' : 'Save Password'}
+              {loading && <Spinner size="sm" />}
+              <span>{loading ? 'Updating...' : 'Update Password'}</span>
             </button>
           </div>
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 };

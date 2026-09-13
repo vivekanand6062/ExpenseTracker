@@ -1,28 +1,31 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
-  ArrowUp,
-  PlusCircle,
+  ArrowDownLeft,
+  Plus,
   Download,
   Search,
   Filter,
   Trash2,
   Edit2,
   TrendingUp,
-  CreditCard,
-  Layers,
   Calendar,
+  Layers,
+  CheckCircle2,
+  AlertTriangle,
+  X,
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import api from '../api/axios';
-import { incomeStyles } from '../assets/dummyStyles';
 import TransactionModal from '../components/TransactionModal';
-import Toast from '../components/Toast';
+import Spinner from '../components/Spinner';
 
 const formatCurrency = (val) => {
   const num = Number(val) || 0;
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency: 'INR',
-    maximumFractionDigits: 2,
+    maximumFractionDigits: 0,
   }).format(num);
 };
 
@@ -59,71 +62,49 @@ const Income = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [exporting, setExporting] = useState(false);
 
-  // Modal states
+  // Modal controls
   const [modalOpen, setModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
 
-  // Delete confirmation
+  // Custom Delete confirmation dialog
   const [deleteId, setDeleteId] = useState(null);
 
-  // Toast feedback
-  const [toastMessage, setToastMessage] = useState('');
-  const [toastType, setToastType] = useState('success');
-
-  const refetchData = async () => {
+  const fetchIncomeData = useCallback(async () => {
     try {
+      setLoading(true);
       const [listRes, overviewRes] = await Promise.all([
         api.get('/income/get'),
         api.get(`/income/overview?range=${selectedRange}`),
       ]);
 
-      if (Array.isArray(listRes.data)) {
-        setIncomes(listRes.data);
-      }
+      const items = Array.isArray(listRes.data)
+        ? listRes.data
+        : listRes.data?.data || [];
+      setIncomes(items);
+
       if (overviewRes.data?.success && overviewRes.data?.data) {
         setOverview(overviewRes.data.data);
       }
     } catch (err) {
       console.error('Error fetching income data:', err);
-      setToastType('error');
-      setToastMessage('Failed to fetch income details.');
+      toast.error('Failed to load income details.');
+    } finally {
+      setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    let active = true;
-
-    Promise.all([
-      api.get('/income/get'),
-      api.get(`/income/overview?range=${selectedRange}`),
-    ])
-      .then(([listRes, overviewRes]) => {
-        if (!active) return;
-        if (Array.isArray(listRes.data)) {
-          setIncomes(listRes.data);
-        }
-        if (overviewRes.data?.success && overviewRes.data?.data) {
-          setOverview(overviewRes.data.data);
-        }
-      })
-      .catch((err) => {
-        if (!active) return;
-        console.error('Error fetching income data:', err);
-        setToastType('error');
-        setToastMessage('Failed to fetch income details.');
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-
-    return () => {
-      active = false;
-    };
   }, [selectedRange]);
 
+  useEffect(() => {
+    fetchIncomeData();
+  }, [fetchIncomeData]);
+
   const handleDownloadExcel = async () => {
+    if (incomes.length === 0) {
+      toast.error('No income records available to export.');
+      return;
+    }
     setExporting(true);
     try {
+      toast.loading('Preparing formatted Excel sheet...', { id: 'income-dl' });
       const res = await api.get('/income/downloadexcel', {
         responseType: 'blob',
       });
@@ -133,17 +114,15 @@ const Income = () => {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `income_details_${new Date().toISOString().split('T')[0]}.xlsx`;
+      a.download = `ArthSetu_Income_${selectedRange}_${new Date().toISOString().split('T')[0]}.xlsx`;
       document.body.appendChild(a);
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
-      setToastType('success');
-      setToastMessage('Excel sheet downloaded successfully.');
+      toast.success('Income spreadsheet downloaded!', { id: 'income-dl' });
     } catch (err) {
       console.error('Failed to download Excel:', err);
-      setToastType('error');
-      setToastMessage('Failed to export Excel.');
+      toast.error('Failed to export Excel spreadsheet.', { id: 'income-dl' });
     } finally {
       setExporting(false);
     }
@@ -152,59 +131,63 @@ const Income = () => {
   const handleDelete = async (id) => {
     try {
       await api.delete(`/income/delete/${id}`);
-      setToastType('success');
-      setToastMessage('Income deleted successfully.');
+      toast.success('Income record deleted successfully.');
       setDeleteId(null);
-      refetchData();
+      fetchIncomeData();
     } catch (err) {
       console.error('Failed to delete income:', err);
-      setToastType('error');
-      setToastMessage('Failed to delete income.');
+      toast.error('Failed to delete income record.');
     }
   };
 
+  // Derive dynamic category list
+  const categories = ['All', ...new Set(incomes.map((i) => i.category).filter(Boolean))];
+
   // Filtered income list
   const filteredIncomes = incomes.filter((item) => {
+    const query = searchQuery.toLowerCase().trim();
     const matchesSearch =
-      item.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.category?.toLowerCase().includes(searchQuery.toLowerCase());
+      !query ||
+      item.description?.toLowerCase().includes(query) ||
+      item.category?.toLowerCase().includes(query);
     const matchesCategory =
       selectedCategory === 'All' || item.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
-  const categories = ['All', ...new Set(incomes.map((i) => i.category).filter(Boolean))];
-
   return (
-    <div className="space-y-6">
-      <Toast
-        message={toastMessage}
-        type={toastType}
-        onClose={() => setToastMessage('')}
-      />
-
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35 }}
+      className="space-y-6"
+    >
       {/* Header Container */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-emerald-600 font-semibold text-sm mb-1">
-            <ArrowUp size={18} />
-            <span>Income Management</span>
+          <div className="flex items-center gap-2 mb-1">
+            <div className="h-6 w-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center">
+              <ArrowDownLeft size={14} />
+            </div>
+            <span className="text-xs font-extrabold uppercase tracking-wider text-emerald-700">
+              Cash Inflow Management
+            </span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-800">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             Income Streams
           </h1>
-          <p className="text-gray-500 text-sm mt-1">
-            Track, analyze and record your revenues and earnings
+          <p className="text-slate-500 text-xs sm:text-sm mt-0.5">
+            Monitor earnings, salary inflows, consulting fees, and investment dividends.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
             onClick={handleDownloadExcel}
             disabled={exporting || incomes.length === 0}
-            className="flex items-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2.5 rounded-xl font-medium shadow-sm transition-all text-sm disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-semibold border border-slate-200/70 transition shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Download size={16} />
+            <Download size={15} className="text-emerald-600" />
             <span>{exporting ? 'Exporting...' : 'Export Excel'}</span>
           </button>
 
@@ -213,96 +196,130 @@ const Income = () => {
               setEditingItem(null);
               setModalOpen(true);
             }}
-            className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white px-5 py-2.5 rounded-xl font-medium shadow-md hover:shadow-lg transition-all text-sm"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white text-xs font-bold shadow-md shadow-teal-700/20 transition cursor-pointer"
           >
-            <PlusCircle size={18} />
+            <Plus size={15} />
             <span>Add Income</span>
           </button>
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {/* Total Income */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 border-l-4 border-l-emerald-500">
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-gray-500">Total Income</span>
-            <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-xl">
-              <TrendingUp size={22} />
-            </div>
-          </div>
-          <div className="mt-4">
-            <h3 className="text-2xl font-bold text-emerald-600">
-              {loading ? '...' : formatCurrency(overview.totalIncome)}
+      {/* 3 Metric Cards with Live Range Selector */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Card 1: Total Volume */}
+        <motion.div
+          whileHover={{ y: -2 }}
+          className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs flex items-center justify-between"
+        >
+          <div>
+            <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider">
+              Total Inflow ({selectedRange})
+            </span>
+            <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">
+              {formatCurrency(overview.totalIncome)}
             </h3>
-            <p className="text-xs text-gray-400 mt-1">In selected timeframe ({selectedRange})</p>
+            <p className="text-[11px] text-emerald-600 font-medium mt-0.5 flex items-center gap-1">
+              <CheckCircle2 size={12} />
+              <span>Accumulated across all streams</span>
+            </p>
           </div>
-        </div>
+          <div className="h-12 w-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100 shadow-2xs shrink-0">
+            <ArrowDownLeft size={22} />
+          </div>
+        </motion.div>
 
-        {/* Average Income */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 border-l-4 border-l-teal-500">
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-gray-500">Average Transaction</span>
-            <div className="p-2.5 bg-teal-50 text-teal-600 rounded-xl">
-              <CreditCard size={22} />
-            </div>
-          </div>
-          <div className="mt-4">
-            <h3 className="text-2xl font-bold text-teal-700">
-              {loading ? '...' : formatCurrency(overview.averageIncome)}
+        {/* Card 2: Average Ticket */}
+        <motion.div
+          whileHover={{ y: -2 }}
+          className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs flex items-center justify-between"
+        >
+          <div>
+            <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider">
+              Average Transaction Ticket
+            </span>
+            <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">
+              {formatCurrency(overview.averageIncome)}
             </h3>
-            <p className="text-xs text-gray-400 mt-1">Mean income amount per entry</p>
+            <p className="text-[11px] text-slate-400 font-medium mt-0.5">
+              Mean inflow per transaction
+            </p>
           </div>
-        </div>
+          <div className="h-12 w-12 rounded-2xl bg-teal-50 text-teal-700 flex items-center justify-center border border-teal-100 shadow-2xs shrink-0">
+            <TrendingUp size={22} />
+          </div>
+        </motion.div>
 
-        {/* Total Count */}
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 border-l-4 border-l-cyan-500">
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-gray-500">Recorded Streams</span>
-            <div className="p-2.5 bg-cyan-50 text-cyan-600 rounded-xl">
-              <Layers size={22} />
-            </div>
-          </div>
-          <div className="mt-4">
-            <h3 className="text-2xl font-bold text-gray-800">
-              {loading ? '...' : overview.numberOfTransactions || incomes.length}
-            </h3>
-            <p className="text-xs text-gray-400 mt-1">Total income events logged</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Transaction List & Filtering Container */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-2">
-            <h2 className="text-lg font-bold text-gray-800">Income Records</h2>
-            <span className="text-xs px-2.5 py-0.5 bg-emerald-50 text-emerald-700 font-semibold rounded-full">
-              {filteredIncomes.length} records
+        {/* Card 3: Count & Timeframe Selector */}
+        <motion.div
+          whileHover={{ y: -2 }}
+          className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs flex flex-col justify-between gap-3"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider">
+              Recorded Inflows
+            </span>
+            <span className="h-7 px-2.5 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center">
+              {overview.numberOfTransactions} entries
             </span>
           </div>
 
-          {/* Timeframe selector & Filter options */}
+          <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
+            <span className="text-xs text-slate-500 font-medium">Time Horizon:</span>
+            <div className="flex items-center p-1 bg-slate-100/90 rounded-2xl border border-slate-200/60">
+              {RANGES.map((r) => (
+                <button
+                  key={r.id}
+                  onClick={() => setSelectedRange(r.id)}
+                  className={`px-3 py-1 rounded-xl text-xs font-bold transition cursor-pointer ${
+                    selectedRange === r.id
+                      ? 'bg-white text-teal-800 shadow-xs'
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Structured List & Filter Container */}
+      <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-xs space-y-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-2.5">
+            <h2 className="text-lg font-bold text-slate-900 tracking-tight">
+              Income Records
+            </h2>
+            <span className="text-xs px-2.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200/60 font-semibold rounded-full">
+              {filteredIncomes.length} records found
+            </span>
+          </div>
+
+          {/* Search & Filter Controls */}
           <div className="flex flex-wrap items-center gap-3">
             {/* Search Input */}
-            <div className="relative min-w-[200px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            <div className="relative min-w-[220px]">
+              <Search
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                size={16}
+              />
               <input
                 type="text"
                 placeholder="Search description or category..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full pl-10 pr-3.5 py-2.5 text-xs bg-slate-100/80 hover:bg-slate-100 focus:bg-white border border-transparent focus:border-teal-600 rounded-2xl focus:outline-none transition shadow-2xs text-slate-800"
               />
             </div>
 
             {/* Category Select */}
-            <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
-              <Filter size={15} className="text-gray-500" />
+            <div className="flex items-center gap-1.5 bg-slate-100/80 hover:bg-slate-100 border border-slate-200/60 rounded-2xl px-3.5 py-2">
+              <Filter size={14} className="text-slate-500" />
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="bg-transparent text-sm text-gray-700 focus:outline-none"
+                className="bg-transparent text-xs font-semibold text-slate-700 focus:outline-none cursor-pointer"
               >
                 {categories.map((c) => (
                   <option key={c} value={c}>
@@ -311,96 +328,89 @@ const Income = () => {
                 ))}
               </select>
             </div>
-
-            {/* Timeframe pill selector */}
-            <div className="flex bg-gray-100 p-1 rounded-xl">
-              {RANGES.map((r) => (
-                <button
-                  key={r.id}
-                  onClick={() => setSelectedRange(r.id)}
-                  className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
-                    selectedRange === r.id
-                      ? 'bg-white text-emerald-700 shadow-sm'
-                      : 'text-gray-500 hover:text-gray-800'
-                  }`}
-                >
-                  {r.label}
-                </button>
-              ))}
-            </div>
           </div>
         </div>
 
-        {/* Transactions Table / List */}
+        {/* Structured Table */}
         {loading ? (
-          <div className="py-16 flex justify-center">
-            <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="py-20 flex flex-col items-center justify-center gap-3">
+            <Spinner size="md" className="text-teal-600" />
+            <span className="text-xs font-semibold text-slate-400">Loading income records...</span>
           </div>
         ) : filteredIncomes.length === 0 ? (
-          <div className={incomeStyles.emptyStateContainer}>
-            <div className={incomeStyles.emptyStateIcon}>
-              <ArrowUp size={24} className="text-emerald-500" />
+          <div className="py-16 text-center text-slate-400 space-y-3 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 p-8">
+            <div className="h-12 w-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+              <Layers size={22} />
             </div>
-            <p className={incomeStyles.emptyStateText}>No income records found</p>
-            <p className={incomeStyles.emptyStateSubtext}>
+            <p className="text-sm font-bold text-slate-700">No income records found</p>
+            <p className="text-xs text-slate-400 max-w-sm mx-auto">
               {searchQuery || selectedCategory !== 'All'
-                ? 'Try adjusting your search or category filters.'
-                : 'Click "Add Income" above to log your first earnings.'}
+                ? 'Try adjusting your search query or reset the category filter.'
+                : 'Click "Add Income" above to log your first earnings stream.'}
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto rounded-2xl border border-slate-100">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-gray-100 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                  <th className="py-3 px-4">Description</th>
-                  <th className="py-3 px-4">Category</th>
-                  <th className="py-3 px-4">Date</th>
-                  <th className="py-3 px-4 text-right">Amount</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
+                <tr className="border-b border-slate-100 bg-slate-50/60 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                  <th className="py-3.5 px-5">Description</th>
+                  <th className="py-3.5 px-5">Category</th>
+                  <th className="py-3.5 px-5">Date</th>
+                  <th className="py-3.5 px-5 text-right">Amount</th>
+                  <th className="py-3.5 px-5 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 text-sm">
+              <tbody className="divide-y divide-slate-100 text-xs">
                 {filteredIncomes.map((item) => (
                   <tr
                     key={item._id}
-                    className="hover:bg-gray-50/80 transition-colors group"
+                    className="hover:bg-slate-50/80 transition-colors group"
                   >
-                    <td className="py-3.5 px-4 font-semibold text-gray-800">
+                    {/* Description */}
+                    <td className="py-4 px-5 font-bold text-slate-800">
                       {item.description}
                     </td>
-                    <td className="py-3.5 px-4">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
+
+                    {/* Category */}
+                    <td className="py-4 px-5">
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/50">
                         {item.category}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-gray-500">
-                      <span className="flex items-center gap-1.5 text-xs">
-                        <Calendar size={14} className="text-gray-400" />
-                        {formatDate(item.date)}
+
+                    {/* Date */}
+                    <td className="py-4 px-5 text-slate-500 font-medium">
+                      <span className="inline-flex items-center gap-1.5">
+                        <Calendar size={13} className="text-slate-400" />
+                        <span>{formatDate(item.date)}</span>
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-right font-bold text-emerald-600">
+
+                    {/* Amount */}
+                    <td className="py-4 px-5 text-right font-black text-sm text-emerald-600">
                       +{formatCurrency(item.amount)}
                     </td>
-                    <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
+
+                    {/* Actions */}
+                    <td className="py-4 px-5 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
                         <button
                           onClick={() => {
-                            setEditingItem(item);
+                            setEditingItem({ ...item, type: 'income' });
                             setModalOpen(true);
                           }}
-                          className="p-1.5 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                          className="p-1.5 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition cursor-pointer"
                           title="Edit Income"
                         >
-                          <Edit2 size={16} />
+                          <Edit2 size={14} />
                         </button>
                         <button
                           onClick={() => setDeleteId(item._id)}
-                          className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
                           title="Delete Income"
                         >
-                          <Trash2 size={16} />
+                          <Trash2 size={14} />
                         </button>
                       </div>
                     </td>
@@ -412,33 +422,55 @@ const Income = () => {
         )}
       </div>
 
-      {/* Delete Confirmation Dialog */}
-      {deleteId && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl">
-            <h3 className="text-lg font-bold text-gray-800 mb-2">Delete Income?</h3>
-            <p className="text-sm text-gray-600 mb-6">
-              Are you sure you want to delete this income entry? This action cannot be undone.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setDeleteId(null)}
-                className="flex-1 py-2.5 border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleDelete(deleteId)}
-                className="flex-1 py-2.5 bg-red-600 text-white font-medium rounded-xl hover:bg-red-700 shadow-md"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Custom Delete Confirmation Modal */}
+      <AnimatePresence>
+        {deleteId && (
+          <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-100 space-y-4"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5 text-rose-600">
+                  <div className="p-2 rounded-xl bg-rose-50">
+                    <AlertTriangle size={20} />
+                  </div>
+                  <h3 className="text-base font-bold text-slate-900">Delete Income Entry?</h3>
+                </div>
+                <button
+                  onClick={() => setDeleteId(null)}
+                  className="p-1.5 text-slate-400 hover:text-slate-600 rounded-xl"
+                >
+                  <X size={16} />
+                </button>
+              </div>
 
-      {/* Add / Edit Modal */}
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Are you sure you want to delete this income entry from ArthSetu AI? This action cannot be undone and will update your aggregate financial calculations.
+              </p>
+
+              <div className="flex gap-2.5 pt-2">
+                <button
+                  onClick={() => setDeleteId(null)}
+                  className="flex-1 py-2.5 border border-slate-200 text-slate-700 font-semibold text-xs rounded-xl hover:bg-slate-50 transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleDelete(deleteId)}
+                  className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-md shadow-rose-600/25 transition cursor-pointer"
+                >
+                  Confirm Delete
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Add / Edit Transaction Modal */}
       <TransactionModal
         isOpen={modalOpen}
         type="income"
@@ -447,15 +479,9 @@ const Income = () => {
           setModalOpen(false);
           setEditingItem(null);
         }}
-        onSuccess={() => {
-          setToastType('success');
-          setToastMessage(
-            editingItem ? 'Income updated successfully!' : 'Income added successfully!'
-          );
-          refetchData();
-        }}
+        onSuccess={fetchIncomeData}
       />
-    </div>
+    </motion.div>
   );
 };
 

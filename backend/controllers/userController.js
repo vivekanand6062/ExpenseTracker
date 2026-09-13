@@ -2,6 +2,7 @@ import User from '../models/userModel.js';
 import validator from 'validator';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { ensureDefaultCategories } from './categoryController.js';
 
 
 
@@ -43,13 +44,17 @@ export async function registerUser(req,res){
                 message:"User already register"
             })
         }
-        const hashed=await bcrypt.hash(password,10);
-        const user=await User.create({name,email,password:hashed});
-        const token =createToken(user._id);
+        const hashed = await bcrypt.hash(password, 10);
+        const user = await User.create({ name, email, password: hashed });
+        
+        // Ensure 17 default categories are seeded upon registration
+        await ensureDefaultCategories();
+
+        const token = createToken(user._id);
         res.status(201).json({
-            success:true,
+            success: true,
             token,
-            user:{id:user._id,name:user.name,email:user.email}
+            user: { id: user._id, name: user.name, email: user.email }
         });
 
     }catch(error){

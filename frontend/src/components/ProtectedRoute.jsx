@@ -1,15 +1,18 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
+import Spinner from './Spinner';
 
 const ProtectedRoute = () => {
   const { isAuthenticated, loading } = useAuth();
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-[#fcfbf9]">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-sm text-gray-500 font-medium">Loading Expense Tracker...</p>
+          <Spinner size="lg" className="text-teal-700" />
+          <p className="text-xs text-slate-500 font-semibold tracking-wide">
+            Loading ArthSetu AI...
+          </p>
         </div>
       </div>
     );

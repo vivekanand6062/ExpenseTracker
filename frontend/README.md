@@ -1,6 +1,8 @@
-# ExpenseTracker - Frontend Client
+# ArthSetu AI — Frontend Client
 
-Modern, responsive client application for ExpenseTracker built with **React 19**, **Vite**, and **Tailwind CSS v4**.
+> **“Understand your money. Build your future.”**
+
+Modern, responsive client application for **ArthSetu AI** built with **React 19**, **Vite**, **Tailwind CSS v4**, and **Framer Motion**.
 
 ---
 
@@ -39,5 +41,6 @@ npm run build
 - **Axios** (with token & 401 response interceptors)
 - **Lucide React** (icons)
 - **Framer Motion** (transitions & animations)
+- **Recharts** (financial area & donut visualizations)
 
 For complete project documentation, API endpoints, and backend setup, see the root [README.md](../README.md).

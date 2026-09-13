@@ -1,54 +1,88 @@
-import { useState } from 'react';
-import { X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { X, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
+import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
 import api from '../api/axios';
-import { modalStyles } from '../assets/dummyStyles';
+import Spinner from './Spinner';
 
-const INCOME_CATEGORIES = [
-  'Salary',
-  'Freelance',
-  'Investment',
-  'Business',
-  'Gift',
-  'Other',
-];
-
-const EXPENSE_CATEGORIES = [
-  'Food',
-  'Rent',
-  'Transportation',
+const DEFAULT_INCOME_CATS = ['Salary', 'Freelance', 'Investment', 'Business / Other'];
+const DEFAULT_EXPENSE_CATS = [
+  'Housing & Rent',
+  'Food & Dining',
+  'Groceries',
   'Utilities',
+  'Transportation',
+  'Healthcare & Medical',
   'Entertainment',
-  'Healthcare',
-  'Shopping',
+  'Shopping & Apparel',
   'Education',
+  'Personal Care',
   'Travel',
-  'Other',
+  'Subscriptions',
+  'Miscellaneous',
 ];
 
-const TransactionForm = ({ type, initialData, onClose, onSuccess }) => {
-  const isIncome = type === 'income';
-  const categories = isIncome ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+const TransactionModal = ({
+  isOpen = true,
+  type = 'expense',
+  initialData = null,
+  onClose,
+  onSuccess,
+}) => {
   const isEditing = Boolean(initialData?._id);
-  const colorTheme = isIncome ? modalStyles.colorClasses.teal : modalStyles.colorClasses.orange;
-
+  const [selectedType, setSelectedType] = useState(initialData?.type || type || 'expense');
   const [description, setDescription] = useState(initialData?.description || '');
   const [amount, setAmount] = useState(initialData?.amount || '');
-  const [category, setCategory] = useState(initialData?.category || categories[0]);
+  const [category, setCategory] = useState(initialData?.category || '');
   const [date, setDate] = useState(
     initialData?.date
       ? new Date(initialData.date).toISOString().split('T')[0]
       : new Date().toISOString().split('T')[0]
   );
+  const [categoriesList, setCategoriesList] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+
+  // Fetch dynamic categories from backend
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await api.get('/categories');
+        if (res.data?.success) {
+          setCategoriesList(res.data.categories);
+        }
+      } catch {
+        // Fallback to defaults
+        setCategoriesList([]);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  const activeCategories = categoriesList
+    .filter((c) => c.type === selectedType)
+    .map((c) => c.name);
+
+  const finalCategories =
+    activeCategories.length > 0
+      ? activeCategories
+      : selectedType === 'income'
+      ? DEFAULT_INCOME_CATS
+      : DEFAULT_EXPENSE_CATS;
+
+  useEffect(() => {
+    if (!category || !finalCategories.includes(category)) {
+      setCategory(finalCategories[0] || '');
+    }
+  }, [selectedType, finalCategories, category]);
+
+  if (!isOpen) return null;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
 
     const numAmount = Number(amount);
     if (!description.trim() || !amount || numAmount <= 0) {
-      setError('Please provide a valid description and a positive amount.');
+      toast.error('Please provide a valid description and a positive amount.');
       return;
     }
 
@@ -57,92 +91,146 @@ const TransactionForm = ({ type, initialData, onClose, onSuccess }) => {
       const payload = {
         description: description.trim(),
         amount: numAmount,
-        category: category || categories[0],
+        category: category || finalCategories[0],
         date: date || new Date().toISOString(),
+        type: selectedType,
       };
 
       if (isEditing) {
-        payload.id = initialData._id;
-        const endpoint = isIncome ? `/income/update/${initialData._id}` : `/expense/update/${initialData._id}`;
-        await api.put(endpoint, payload);
+        // Update
+        await api.put(`/transactions/update/${initialData._id}`, payload);
+        toast.success('Transaction updated successfully!');
       } else {
-        const endpoint = isIncome ? '/income/add' : '/expense/add';
-        await api.post(endpoint, payload);
+        // Add
+        await api.post('/transactions/add', payload);
+        toast.success(
+          `${selectedType === 'income' ? 'Income' : 'Expense'} added successfully!`
+        );
       }
 
       onSuccess?.();
-      onClose();
+      onClose?.();
     } catch (err) {
-      const msg = err.response?.data?.message || 'Failed to save transaction.';
-      setError(msg);
+      toast.error(
+        err.response?.data?.message || 'Failed to save transaction. Please try again.'
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className={modalStyles.overlay}>
-      <div className={modalStyles.modalContainer}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 15 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 15 }}
+        className="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden"
+      >
         {/* Header */}
-        <div className={modalStyles.modalHeader}>
-          <h2 className={modalStyles.modalTitle}>
-            {isEditing ? `Edit ${isIncome ? 'Income' : 'Expense'}` : `Add New ${isIncome ? 'Income' : 'Expense'}`}
-          </h2>
+        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
+          <div>
+            <h3 className="text-xl font-bold text-slate-900 tracking-tight">
+              {isEditing
+                ? 'Edit Transaction'
+                : `Add New ${selectedType === 'income' ? 'Income' : 'Expense'}`}
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5">
+              {isEditing
+                ? 'Update the transaction details below'
+                : 'Enter the record details to track in your finances'}
+            </p>
+          </div>
           <button
             onClick={onClose}
-            className={modalStyles.closeButton}
-            aria-label="Close modal"
+            className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition cursor-pointer"
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
-        {/* Error Notification */}
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg">
-            {error}
-          </div>
-        )}
+        {/* Form Body */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Type Toggle if not editing */}
+          {!isEditing && (
+            <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100/80 rounded-2xl border border-slate-200/60">
+              <button
+                type="button"
+                onClick={() => setSelectedType('expense')}
+                className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                  selectedType === 'expense'
+                    ? 'bg-white text-rose-600 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                <ArrowUpRight size={15} />
+                <span>Expense</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedType('income')}
+                className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                  selectedType === 'income'
+                    ? 'bg-white text-emerald-600 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                <ArrowDownLeft size={15} />
+                <span>Income</span>
+              </button>
+            </div>
+          )}
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className={modalStyles.form}>
           {/* Description */}
-          <div>
-            <label className={modalStyles.label}>Description</label>
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-700">Description / Title</label>
             <input
               type="text"
               required
-              placeholder="e.g. Monthly Salary, Grocery run"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className={modalStyles.input(colorTheme.ring)}
+              placeholder="e.g. Client Payment, Grocery shopping"
+              className="w-full bg-slate-100/80 hover:bg-slate-100 focus:bg-white border-2 border-transparent focus:border-teal-600 rounded-2xl px-4 py-3 text-slate-900 text-sm focus:outline-none transition shadow-2xs"
             />
           </div>
 
-          {/* Amount */}
-          <div>
-            <label className={modalStyles.label}>Amount (₹)</label>
-            <input
-              type="number"
-              required
-              step="0.01"
-              min="0.01"
-              placeholder="0.00"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              className={modalStyles.input(colorTheme.ring)}
-            />
+          {/* Amount and Date */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700">Amount (₹)</label>
+              <input
+                type="number"
+                step="any"
+                min="0.01"
+                required
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0.00"
+                className="w-full bg-slate-100/80 hover:bg-slate-100 focus:bg-white border-2 border-transparent focus:border-teal-600 rounded-2xl px-4 py-3 text-slate-900 text-sm focus:outline-none transition shadow-2xs"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700">Transaction Date</label>
+              <input
+                type="date"
+                required
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="w-full bg-slate-100/80 hover:bg-slate-100 focus:bg-white border-2 border-transparent focus:border-teal-600 rounded-2xl px-4 py-3 text-slate-900 text-sm focus:outline-none transition shadow-2xs"
+              />
+            </div>
           </div>
 
-          {/* Category */}
-          <div>
-            <label className={modalStyles.label}>Category</label>
+          {/* Category Dropdown */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-700">Category</label>
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className={modalStyles.input(colorTheme.ring)}
+              className="w-full bg-slate-100/80 hover:bg-slate-100 focus:bg-white border-2 border-transparent focus:border-teal-600 rounded-2xl px-4 py-3 text-slate-900 text-sm focus:outline-none transition shadow-2xs cursor-pointer"
             >
-              {categories.map((cat) => (
+              {finalCategories.map((cat) => (
                 <option key={cat} value={cat}>
                   {cat}
                 </option>
@@ -150,49 +238,35 @@ const TransactionForm = ({ type, initialData, onClose, onSuccess }) => {
             </select>
           </div>
 
-          {/* Date */}
-          <div>
-            <label className={modalStyles.label}>Date</label>
-            <input
-              type="date"
-              required
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className={modalStyles.input(colorTheme.ring)}
-            />
+          {/* Action Buttons */}
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-5 py-3 rounded-2xl text-slate-600 hover:bg-slate-100 text-sm font-semibold transition cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white text-sm font-semibold shadow-md shadow-teal-700/20 disabled:opacity-60 transition cursor-pointer"
+            >
+              {loading ? (
+                <>
+                  <Spinner size="sm" />
+                  <span>Saving...</span>
+                </>
+              ) : isEditing ? (
+                'Update Record'
+              ) : (
+                'Save Transaction'
+              )}
+            </button>
           </div>
-
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={loading}
-            className={modalStyles.submitButton(colorTheme.button)}
-          >
-            {loading ? 'Saving...' : isEditing ? 'Update Transaction' : `Add ${isIncome ? 'Income' : 'Expense'}`}
-          </button>
         </form>
-      </div>
+      </motion.div>
     </div>
-  );
-};
-
-const TransactionModal = ({
-  isOpen,
-  onClose,
-  type = 'income',
-  initialData = null,
-  onSuccess,
-}) => {
-  if (!isOpen) return null;
-
-  return (
-    <TransactionForm
-      key={`${type}-${initialData?._id || 'new'}`}
-      type={type}
-      initialData={initialData}
-      onClose={onClose}
-      onSuccess={onSuccess}
-    />
   );
 };
 

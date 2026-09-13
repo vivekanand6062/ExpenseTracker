@@ -1,7 +1,8 @@
 {
-  "name": "frontend",
+  "name": "arthsetu-ai",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "AI-powered personal finance and expense management platform",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -16,7 +17,9 @@
     "lucide-react": "^1.41.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "react-hot-toast": "^2.6.0",
     "react-router-dom": "^7.18.3",
+    "recharts": "^3.10.1",
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {

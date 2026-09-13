@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import { styles } from '../assets/dummyStyles';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
 
@@ -9,13 +8,14 @@ const Layout = () => {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   return (
-    <div className={styles.layout.root}>
-      {/* Top Navbar */}
+    <div className="min-h-screen bg-slate-50/70 text-slate-900 flex flex-col font-sans selection:bg-violet-500 selection:text-white">
+      {/* Top Header Navbar - Offset to match sidebar */}
       <Navbar
+        sidebarCollapsed={sidebarCollapsed}
         onToggleMobileSidebar={() => setMobileSidebarOpen((prev) => !prev)}
       />
 
-      {/* Responsive Sidebar */}
+      {/* Responsive Navigation Sidebar */}
       <Sidebar
         isCollapsed={sidebarCollapsed}
         setIsCollapsed={setSidebarCollapsed}
@@ -23,9 +23,13 @@ const Layout = () => {
         setMobileOpen={setMobileSidebarOpen}
       />
 
-      {/* Main Content Area */}
-      <main className={styles.layout.mainContainer(sidebarCollapsed)}>
-        <div className="max-w-7xl mx-auto pb-12">
+      {/* Main Content Area with generous top padding to clear fixed navbar */}
+      <main
+        className={`flex-1 transition-all duration-300 pt-24 pb-16 px-4 sm:px-6 lg:px-8 ${
+          sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto">
           <Outlet />
         </div>
       </main>

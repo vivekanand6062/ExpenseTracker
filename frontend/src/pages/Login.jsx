@@ -1,168 +1,202 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, AlertCircle, Wallet } from 'lucide-react';
-import { loginStyles } from '../assets/dummyStyles';
-import { useAuth } from '../context/useAuth';
+import toast from 'react-hot-toast';
+import { Eye, EyeOff, Sparkles, ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useAuth } from '../context/useAuth.js';
+import AuthHero from '../components/AuthHero.jsx';
+import Spinner from '../components/Spinner.jsx';
+import BrandLogo from '../components/BrandLogo.jsx';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [form, setForm] = useState({ email: '', password: '' });
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = async (e) => {
+  const fillDemoCredentials = () => {
+    setForm({
+      email: 'demo@arthsetu.ai',
+      password: 'demoPassword123',
+    });
+    toast.success('ArthSetu AI demo credentials loaded!');
+  };
+
+  const onSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-
-    if (!email || !password) {
-      setError('Please enter both email and password.');
-      return;
-    }
-
     setLoading(true);
     try {
-      const res = await login(email, password);
-      if (res?.success) {
-        navigate('/', { replace: true });
-      } else {
-        setError(res?.message || 'Login failed. Please try again.');
+      const res = await login(form.email, form.password);
+      if (res && res.success === false) {
+        toast.error(res.message || 'Authentication failed');
+        return;
       }
+      toast.success('Welcome back to ArthSetu AI!');
+      navigate('/dashboard');
     } catch (err) {
-      const msg =
-        err.response?.data?.message ||
-        'Unable to connect to server. Please try again later.';
-      setError(msg);
+      toast.error(err.response?.data?.message || err.message || 'Authentication failed');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className={loginStyles.pageContainer}>
-      <div className={loginStyles.cardContainer}>
-        {/* Header */}
-        <div className={loginStyles.header}>
-          <div className={loginStyles.avatar}>
-            <Wallet className="w-10 h-10 text-white" />
-          </div>
-          <h1 className={loginStyles.headerTitle}>Welcome Back</h1>
-          <p className={loginStyles.headerSubtitle}>
-            Sign in to manage your finances & expenses
-          </p>
-        </div>
+    <div className="min-h-screen flex bg-[#fcfbf9] font-sans selection:bg-teal-500/20 selection:text-teal-900">
+      {/* Left Column - Login Form */}
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+        className="flex-1 flex flex-col justify-between px-6 sm:px-10 lg:px-14 py-8 order-1 min-h-screen"
+      >
+        {/* Brand Logo Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="flex justify-start items-center"
+        >
+          <BrandLogo size="md" variant="full" showTagline={false} linkTo="/landing" />
+        </motion.div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className={loginStyles.formContainer}>
-          {error && (
-            <div className={loginStyles.errorContainer}>
-              <div className={loginStyles.errorIcon}>
-                <AlertCircle className="w-4 h-4" />
-              </div>
-              <p className={loginStyles.errorText}>{error}</p>
-            </div>
-          )}
-
-          {/* Email */}
-          <div className="mb-4">
-            <label className={loginStyles.label}>Email Address</label>
-            <div className={loginStyles.inputContainer}>
-              <Mail className={loginStyles.inputIcon} size={18} />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@example.com"
-                className={loginStyles.input}
-              />
-            </div>
-          </div>
-
-          {/* Password */}
-          <div className="mb-4">
-            <label className={loginStyles.label}>Password</label>
-            <div className={loginStyles.inputContainer}>
-              <Lock className={loginStyles.inputIcon} size={18} />
-              <input
-                type={showPassword ? 'text' : 'password'}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className={loginStyles.passwordInput}
-              />
+        {/* Center Card Content */}
+        <div className="flex-1 flex items-center justify-center py-10">
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="w-full max-w-md"
+          >
+            <div className="flex items-center justify-between mb-1.5">
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                Sign In
+              </h1>
               <button
                 type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className={loginStyles.passwordToggle}
+                onClick={fillDemoCredentials}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 text-xs font-bold border border-teal-200/80 transition cursor-pointer shadow-2xs active:scale-95"
+                title="Auto-fill demo credentials"
               >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                <Sparkles size={13} className="text-teal-600" />
+                <span>Fill Demo</span>
               </button>
             </div>
-          </div>
+            <p className="text-slate-500 text-xs sm:text-sm mb-8">
+              Access your financial command center & AI insights.
+            </p>
 
-          {/* Remember Me */}
-          <div className={loginStyles.checkboxContainer}>
-            <input
-              id="remember-me"
-              type="checkbox"
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
-              className={loginStyles.checkbox}
-            />
-            <label htmlFor="remember-me" className={loginStyles.checkboxLabel}>
-              Remember me
-            </label>
-          </div>
+            <form onSubmit={onSubmit} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Email Address
+                </label>
+                <input
+                  type="email"
+                  required
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  className="w-full bg-white hover:bg-slate-50 focus:bg-white border border-slate-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-500/15 rounded-2xl px-4 py-3 text-slate-900 text-sm focus:outline-none transition placeholder:text-slate-400 shadow-2xs"
+                  placeholder="you@example.com"
+                />
+              </div>
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className={`${loginStyles.button} ${
-              loading ? loginStyles.buttonDisabled : ''
-            }`}
-          >
-            {loading && (
-              <svg
-                className={loginStyles.spinner}
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={form.password}
+                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    className="w-full bg-white hover:bg-slate-50 focus:bg-white border border-slate-200 focus:border-teal-600 focus:ring-2 focus:ring-teal-500/15 rounded-2xl px-4 py-3 pr-12 text-slate-900 text-sm focus:outline-none transition placeholder:text-slate-400 shadow-2xs"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition p-1 cursor-pointer focus:outline-none"
+                    tabIndex={-1}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                type="submit"
+                disabled={loading}
+                className="w-full inline-flex items-center justify-center gap-2 bg-teal-700 hover:bg-teal-800 active:bg-teal-900 text-white font-bold py-3.5 rounded-2xl transition shadow-md shadow-teal-900/15 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer text-sm"
               >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
-              </svg>
-            )}
-            {loading ? 'Signing in...' : 'Sign In'}
-          </button>
+                {loading ? (
+                  <>
+                    <Spinner size="sm" />
+                    <span>Signing in...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Sign In to ArthSetu AI</span>
+                    <ArrowRight size={15} />
+                  </>
+                )}
+              </motion.button>
 
-          {/* Sign Up Link */}
-          <div className={loginStyles.signUpContainer}>
-            <p className={loginStyles.signUpText}>
-              Don't have an account?{' '}
-              <Link to="/register" className={loginStyles.signUpLink}>
-                Sign up
+              {/* Demo Account Divider & Instant Access */}
+              <div className="relative pt-2 pb-1">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-slate-200" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-[#fcfbf9] px-3 text-slate-400 font-semibold text-[11px]">
+                    Or explore instantly
+                  </span>
+                </div>
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                type="button"
+                onClick={fillDemoCredentials}
+                className="w-full inline-flex items-center justify-center gap-2 bg-white hover:bg-teal-50/50 active:bg-teal-100/50 text-teal-800 font-bold py-3.5 rounded-2xl transition border border-teal-300/70 shadow-2xs cursor-pointer text-xs sm:text-sm"
+              >
+                <Sparkles size={15} className="text-teal-600" />
+                <span>Fill Demo Account Credentials</span>
+              </motion.button>
+            </form>
+
+            <p className="text-center mt-7 text-xs text-slate-500 font-medium">
+              New to ArthSetu AI?{' '}
+              <Link
+                to="/register"
+                className="text-teal-700 font-bold hover:text-teal-800 transition underline-offset-4 hover:underline"
+              >
+                Create your account
               </Link>
             </p>
-          </div>
-        </form>
+          </motion.div>
+        </div>
+
+        {/* Footer Info */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-400 pt-4 border-t border-slate-200/60 gap-2"
+        >
+          <span>© {new Date().getFullYear()} ArthSetu AI</span>
+          <span className="font-semibold text-teal-800">Understand your money. Build your future.</span>
+        </motion.div>
+      </motion.div>
+
+      {/* Right Column - Brand Showcase Hero */}
+      <div className="hidden lg:flex lg:w-1/2 xl:w-[55%] order-2">
+        <AuthHero headline="Understand your money." subheadline="Build your future." />
       </div>
     </div>
   );
