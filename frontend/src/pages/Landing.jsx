@@ -120,79 +120,137 @@ const Landing = () => {
       </header>
 
       {/* 2. HERO SECTION */}
-      <section className="relative pt-14 pb-20 sm:pt-20 sm:pb-28 overflow-hidden">
-        {/* Subtle Ambient Glow */}
-        <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-gradient-to-tr from-teal-200/30 via-emerald-100/20 to-transparent blur-3xl pointer-events-none -z-10" />
+      <section className="relative pt-8 pb-16 sm:pt-14 sm:pb-24 overflow-hidden">
+        {/* Subtle Ambient Background Glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[450px] bg-gradient-to-b from-teal-100/40 via-emerald-50/20 to-transparent blur-3xl pointer-events-none -z-10" />
 
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          {/* Eyebrow */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-xs font-bold tracking-wider uppercase mb-6"
-          >
-            <Sparkles size={13} className="text-teal-600" />
-            <span>AI-POWERED PERSONAL FINANCE</span>
-          </motion.div>
-
-          {/* Headline */}
-          <motion.h1
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.12]"
-          >
-            Understand your money.{' '}
-            <span className="bg-gradient-to-r from-teal-700 via-teal-600 to-emerald-600 bg-clip-text text-transparent">
-              Build your future.
-            </span>
-          </motion.h1>
-
-          {/* Supporting Text */}
-          <motion.p
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="mt-6 text-base sm:text-lg text-slate-600 max-w-3xl mx-auto leading-relaxed"
-          >
-            ArthSetu AI turns everyday spending into clear financial insights, helping you track
-            expenses, understand patterns, and make smarter decisions with your money.
-          </motion.p>
-
-          {/* Action CTAs */}
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3.5"
-          >
-            <Link
-              to="/register"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-2xl bg-teal-700 hover:bg-teal-800 text-white text-sm font-bold shadow-lg shadow-teal-900/15 hover:shadow-teal-900/25 transition cursor-pointer"
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* HERO GRADIENT PANEL WITH PATTERNS BEHIND THE TEXT */}
+          <div className="relative rounded-3xl sm:rounded-[2.5rem] border border-teal-200/70 bg-gradient-to-b from-white via-teal-50/40 to-[#f6faf8] shadow-2xl shadow-teal-950/5 p-6 sm:p-12 lg:py-16 lg:px-12 text-center overflow-hidden">
+            {/* SVG Geometric Grid + Micro-Dot Pattern */}
+            <svg
+              className="absolute inset-0 h-full w-full stroke-teal-900/[0.06] [mask-image:radial-gradient(ellipse_at_center,white_35%,transparent_80%)] pointer-events-none"
+              aria-hidden="true"
             >
-              <span>Start tracking for free</span>
-              <ArrowRight size={16} />
-            </Link>
+              <defs>
+                <pattern
+                  id="hero-grid-pattern"
+                  width="36"
+                  height="36"
+                  x="50%"
+                  y="-1"
+                  patternUnits="userSpaceOnUse"
+                >
+                  <path d="M.5 36V.5H36" fill="none" />
+                  <circle cx="0.5" cy="0.5" r="1.2" className="fill-teal-700/25" />
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" strokeWidth="0" fill="url(#hero-grid-pattern)" />
+            </svg>
 
-            <a
-              href="#preview"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-sm font-bold shadow-2xs transition"
+            {/* Radial Concentric Geometric Wave Rings Behind Text */}
+            <div className="hidden sm:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[640px] h-[640px] rounded-full border border-teal-500/10 pointer-events-none" />
+            <div className="hidden sm:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[460px] h-[460px] rounded-full border border-teal-500/10 pointer-events-none" />
+            <div className="hidden sm:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[280px] h-[280px] rounded-full border border-teal-500/10 pointer-events-none" />
+
+            {/* Ambient Multi-Stop Gradient Glow Blobs */}
+            <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[520px] h-[260px] bg-gradient-to-b from-teal-200/50 via-emerald-100/30 to-transparent blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-teal-300/20 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-emerald-200/25 rounded-full blur-3xl pointer-events-none" />
+
+            {/* Floating Desktop Telemetry Pills */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+              className="hidden lg:inline-flex items-center gap-2 absolute top-7 left-7 px-3.5 py-1.5 rounded-full bg-white/90 border border-teal-200/80 shadow-xs text-[11px] font-bold text-slate-700 backdrop-blur-xs"
             >
-              <Compass size={16} className="text-teal-700" />
-              <span>Explore ArthSetu AI</span>
-            </a>
-          </motion.div>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Live Telemetry Active</span>
+            </motion.div>
 
-          {/* Supporting Microcopy */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="mt-5 flex items-center justify-center gap-2 text-xs font-semibold text-slate-500"
-          >
-            <ShieldCheck size={14} className="text-teal-600" />
-            <span>Private by design • Built for smarter financial decisions</span>
-          </motion.div>
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 }}
+              className="hidden lg:inline-flex items-center gap-2 absolute top-7 right-7 px-3.5 py-1.5 rounded-full bg-white/90 border border-teal-200/80 shadow-xs text-[11px] font-bold text-slate-700 backdrop-blur-xs"
+            >
+              <Sparkles size={12} className="text-teal-600" />
+              <span>Gemini Flash 3.6 Engine</span>
+            </motion.div>
+
+            {/* Main Hero Content In Front of Patterns */}
+            <div className="relative z-10 max-w-3xl mx-auto">
+              {/* Eyebrow */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/90 border border-teal-200 text-teal-800 text-xs font-bold tracking-wider uppercase mb-6 shadow-2xs backdrop-blur-xs"
+              >
+                <Sparkles size={13} className="text-teal-600" />
+                <span>AI-POWERED PERSONAL FINANCE</span>
+              </motion.div>
+
+              {/* Headline */}
+              <motion.h1
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-slate-900 leading-[1.12]"
+              >
+                Understand your money.{' '}
+                <span className="bg-gradient-to-r from-teal-700 via-teal-600 to-emerald-600 bg-clip-text text-transparent">
+                  Build your future.
+                </span>
+              </motion.h1>
+
+              {/* Supporting Text */}
+              <motion.p
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="mt-6 text-base sm:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed"
+              >
+                ArthSetu AI turns everyday spending into clear financial insights, helping you track
+                expenses, understand patterns, and make smarter decisions with your money.
+              </motion.p>
+
+              {/* Action CTAs */}
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3.5"
+              >
+                <Link
+                  to="/register"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-2xl bg-teal-700 hover:bg-teal-800 text-white text-sm font-bold shadow-lg shadow-teal-900/15 hover:shadow-teal-900/25 transition cursor-pointer"
+                >
+                  <span>Start tracking for free</span>
+                  <ArrowRight size={16} />
+                </Link>
+
+                <a
+                  href="#preview"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-sm font-bold shadow-2xs transition"
+                >
+                  <Compass size={16} className="text-teal-700" />
+                  <span>Explore ArthSetu AI</span>
+                </a>
+              </motion.div>
+
+              {/* Supporting Microcopy */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                className="mt-5 flex items-center justify-center gap-2 text-xs font-semibold text-slate-500"
+              >
+                <ShieldCheck size={14} className="text-teal-600" />
+                <span>Private by design • Built for smarter financial decisions</span>
+              </motion.div>
+            </div>
+          </div>
 
           {/* 3. LIVE INTERACTIVE PRODUCT PREVIEW MOCKUP & SPENDING TRENDS */}
           <div id="trends" className="scroll-mt-24">
