@@ -194,113 +194,140 @@ const Landing = () => {
             <span>Private by design • Built for smarter financial decisions</span>
           </motion.div>
 
-          {/* 3. LIVE INTERACTIVE PRODUCT PREVIEW MOCKUP */}
-          <motion.div
-            id="preview"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.7 }}
-            className="mt-14 rounded-3xl bg-white border border-slate-200/90 shadow-2xl p-5 sm:p-7 text-left relative overflow-hidden"
-          >
-            {/* Mock Window Controls Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-rose-400" />
-                <span className="w-3 h-3 rounded-full bg-amber-400" />
-                <span className="w-3 h-3 rounded-full bg-emerald-400" />
-                <span className="text-[11px] font-semibold text-slate-400 ml-2">
-                  ArthSetu AI — Command Center
-                </span>
-              </div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-50 text-teal-700 border border-teal-200/70 text-[11px] font-bold">
-                <Sparkles size={12} />
-                <span>Live Analytics Sync</span>
-              </div>
-            </div>
-
-            {/* Quick KPI Metric Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
-              <div className="p-4 rounded-2xl bg-[#fcfbf9] border border-slate-200/80">
-                <span className="text-[11px] font-bold text-slate-500 block">Total Net Balance</span>
-                <span className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-1 block">
-                  ₹ 63,100
-                </span>
-                <span className="text-[10px] text-teal-700 font-semibold mt-1 inline-flex items-center gap-1">
-                  <TrendingUp size={11} />
-                  <span>Optimal Surplus</span>
-                </span>
+          {/* 3. LIVE INTERACTIVE PRODUCT PREVIEW MOCKUP & SPENDING TRENDS */}
+          <div id="trends" className="scroll-mt-24">
+            <motion.div
+              id="preview"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.7 }}
+              className="mt-14 rounded-3xl bg-white border border-slate-200/90 shadow-2xl p-5 sm:p-7 text-left relative overflow-hidden scroll-mt-24"
+            >
+              {/* Mock Window Controls Header */}
+              <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-rose-400" />
+                  <span className="w-3 h-3 rounded-full bg-amber-400" />
+                  <span className="w-3 h-3 rounded-full bg-emerald-400" />
+                  <span className="text-[11px] font-semibold text-slate-400 ml-2">
+                    ArthSetu AI — Command Center
+                  </span>
+                </div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-50 text-teal-700 border border-teal-200/70 text-[11px] font-bold">
+                  <Sparkles size={12} />
+                  <span>Live Analytics Sync</span>
+                </div>
               </div>
 
-              <div className="p-4 rounded-2xl bg-[#fcfbf9] border border-slate-200/80">
-                <span className="text-[11px] font-bold text-slate-500 block">Monthly Inflows</span>
-                <span className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-1 block">
-                  ₹ 97,500
-                </span>
-                <span className="text-[10px] text-emerald-600 font-semibold mt-1 inline-flex items-center gap-1">
-                  <ArrowDownLeft size={11} />
-                  <span>Salary + Freelance</span>
-                </span>
+              {/* Quick KPI Metric Cards */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+                <div className="p-4 rounded-2xl bg-[#fcfbf9] border border-slate-200/80">
+                  <span className="text-[11px] font-bold text-slate-500 block">Total Net Balance</span>
+                  <span className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-1 block">
+                    ₹ 63,100
+                  </span>
+                  <span className="text-[10px] text-teal-700 font-semibold mt-1 inline-flex items-center gap-1">
+                    <TrendingUp size={11} />
+                    <span>Optimal Surplus</span>
+                  </span>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-[#fcfbf9] border border-slate-200/80">
+                  <span className="text-[11px] font-bold text-slate-500 block">Monthly Inflows</span>
+                  <span className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-1 block">
+                    ₹ 97,500
+                  </span>
+                  <span className="text-[10px] text-emerald-600 font-semibold mt-1 inline-flex items-center gap-1">
+                    <ArrowDownLeft size={11} />
+                    <span>Salary + Freelance</span>
+                  </span>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-[#fcfbf9] border border-slate-200/80">
+                  <span className="text-[11px] font-bold text-slate-500 block">Monthly Outflows</span>
+                  <span className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-1 block">
+                    ₹ 34,400
+                  </span>
+                  <span className="text-[10px] text-rose-500 font-semibold mt-1 inline-flex items-center gap-1">
+                    <ArrowUpRight size={11} />
+                    <span>4 Active Categories</span>
+                  </span>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-[#fcfbf9] border border-slate-200/80">
+                  <span className="text-[11px] font-bold text-slate-500 block">Health Score</span>
+                  <span className="text-xl sm:text-2xl font-black text-teal-700 tracking-tight mt-1 block">
+                    90 / 100
+                  </span>
+                  <span className="text-[10px] text-teal-800 font-bold uppercase mt-1 block">
+                    Excellent Trajectory
+                  </span>
+                </div>
               </div>
 
-              <div className="p-4 rounded-2xl bg-[#fcfbf9] border border-slate-200/80">
-                <span className="text-[11px] font-bold text-slate-500 block">Monthly Outflows</span>
-                <span className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mt-1 block">
-                  ₹ 34,400
-                </span>
-                <span className="text-[10px] text-rose-500 font-semibold mt-1 inline-flex items-center gap-1">
-                  <ArrowUpRight size={11} />
-                  <span>4 Active Categories</span>
-                </span>
+              {/* Interactive Preview Chart Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-4 pb-3 border-t border-slate-100">
+                <div>
+                  <h4 className="text-sm font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                    <span>Interactive Spending Trends & Cashflow</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200/70">
+                      6-Month Trajectory
+                    </span>
+                  </h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Visualizing monthly income vs outflows in real-time
+                  </p>
+                </div>
+                <div className="flex items-center gap-4 text-[11px] font-semibold">
+                  <span className="inline-flex items-center gap-1.5 text-teal-700">
+                    <span className="w-2.5 h-2.5 rounded-full bg-teal-600" />
+                    Monthly Income
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 text-rose-500">
+                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
+                    Spending / Outflows
+                  </span>
+                </div>
               </div>
 
-              <div className="p-4 rounded-2xl bg-[#fcfbf9] border border-slate-200/80">
-                <span className="text-[11px] font-bold text-slate-500 block">Health Score</span>
-                <span className="text-xl sm:text-2xl font-black text-teal-700 tracking-tight mt-1 block">
-                  90 / 100
-                </span>
-                <span className="text-[10px] text-teal-800 font-bold uppercase mt-1 block">
-                  Excellent Trajectory
-                </span>
+              {/* Interactive Preview Chart */}
+              <div className="h-56 sm:h-64 w-full pt-2">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={SAMPLE_CHART_DATA} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="landingTeal" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#0d9488" stopOpacity={0.25} />
+                        <stop offset="95%" stopColor="#0d9488" stopOpacity={0} />
+                      </linearGradient>
+                      <linearGradient id="landingRose" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.2} />
+                        <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="month" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `₹${v / 1000}k`} />
+                    <Tooltip
+                      formatter={(val) => [`₹${Number(val).toLocaleString()}`, '']}
+                      contentStyle={{
+                        backgroundColor: '#090d12',
+                        borderRadius: '12px',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        color: '#fff',
+                        fontSize: '11px',
+                      }}
+                    />
+                    <Area type="monotone" dataKey="income" stroke="#0d9488" strokeWidth={2.5} fillOpacity={1} fill="url(#landingTeal)" />
+                    <Area type="monotone" dataKey="expense" stroke="#f43f5e" strokeWidth={2.5} fillOpacity={1} fill="url(#landingRose)" />
+                  </AreaChart>
+                </ResponsiveContainer>
               </div>
-            </div>
-
-            {/* Interactive Preview Chart */}
-            <div className="h-56 sm:h-64 w-full pt-2">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={SAMPLE_CHART_DATA} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="landingTeal" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#0d9488" stopOpacity={0.25} />
-                      <stop offset="95%" stopColor="#0d9488" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient id="landingRose" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="month" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `₹${v / 1000}k`} />
-                  <Tooltip
-                    formatter={(val) => [`₹${Number(val).toLocaleString()}`, '']}
-                    contentStyle={{
-                      backgroundColor: '#090d12',
-                      borderRadius: '12px',
-                      border: '1px solid rgba(255,255,255,0.1)',
-                      color: '#fff',
-                      fontSize: '11px',
-                    }}
-                  />
-                  <Area type="monotone" dataKey="income" stroke="#0d9488" strokeWidth={2.5} fillOpacity={1} fill="url(#landingTeal)" />
-                  <Area type="monotone" dataKey="expense" stroke="#f43f5e" strokeWidth={2.5} fillOpacity={1} fill="url(#landingRose)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
         </div>
       </section>
 
       {/* 4. EXPENSE INTELLIGENCE & FINANCIAL OVERVIEW */}
-      <section id="features" className="py-20 bg-white border-y border-slate-200/80">
+      <section id="features" className="scroll-mt-24 py-20 bg-white border-y border-slate-200/80">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <span className="text-xs font-extrabold uppercase tracking-wider text-teal-700 bg-teal-50 px-3 py-1 rounded-full border border-teal-200/70">
@@ -353,7 +380,7 @@ const Landing = () => {
       </section>
 
       {/* 5. AI FINANCIAL INSIGHTS (Gemini 2.5 / 3.6 Flash) */}
-      <section id="ai-insights" className="py-20 bg-[#090d12] text-white relative overflow-hidden">
+      <section id="ai-insights" className="scroll-mt-24 py-20 bg-[#090d12] text-white relative overflow-hidden">
         <div className="absolute -top-24 -right-24 w-96 h-96 bg-teal-600/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -419,7 +446,7 @@ const Landing = () => {
       </section>
 
       {/* 6. CONVERSATIONAL AI ASSISTANT SHOWCASE */}
-      <section id="assistant" className="py-20 bg-white">
+      <section id="assistant" className="scroll-mt-24 py-20 bg-white">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <span className="text-xs font-extrabold uppercase tracking-wider text-teal-700 bg-teal-50 px-3 py-1 rounded-full border border-teal-200/70">
@@ -477,7 +504,7 @@ const Landing = () => {
       </section>
 
       {/* 7. PRIVACY & SECURITY PROMISE */}
-      <section id="privacy" className="py-16 bg-[#fcfbf9] border-t border-slate-200">
+      <section id="privacy" className="scroll-mt-24 py-16 bg-[#fcfbf9] border-t border-slate-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-4">
           <div className="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-teal-100 text-teal-800 mb-2">
             <Lock size={22} />
